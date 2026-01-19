@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Color Dice – Random Theme Generator</title>
-    <meta name="description" content="ランダムカラーパレット生成ツール。サイコロを振る感覚で配色を探そう。">
+    <meta name="description"
+        content="Roll the dice and discover beautiful color palettes. A simple tool to generate random themes.">
+    <link rel="icon" type="image/png" href="favicon.png">
     <style>
         :root {
             --bg: #0b0b0f;
@@ -509,14 +511,8 @@
             <!-- Left column -->
             <div class="left-col">
                 <div class="card">
-                    <h2>カラーパレット</h2>
+                    <h2>Color Palette</h2>
                     <div class="swatches" id="swatches"></div>
-
-                    <div class="preview-btns">
-                        <button class="btn btn-primary btn-small">Primary</button>
-                        <button class="btn btn-ghost btn-small">Ghost</button>
-                        <a href="#">Link / Accent</a>
-                    </div>
 
                     <div class="controls">
                         <div class="slider-group">
@@ -536,7 +532,7 @@
                 </div>
 
                 <div class="card output-section">
-                    <h2>出力</h2>
+                    <h2>Export</h2>
                     <div class="output-btns">
                         <button class="btn btn-ghost btn-small" id="copyCSS">📋 CSS</button>
                         <button class="btn btn-ghost btn-small" id="downloadHTML">📄 HTML</button>
@@ -548,6 +544,15 @@
 
             <!-- Right column -->
             <div class="right-col">
+                <div class="card ad-section">
+                    <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">PR</div>
+                    <iframe style="border-radius:12px"
+                        src="https://open.spotify.com/embed/playlist/3CEHzVVOhGM60x9c2fwppj?utm_source=generator&theme=0"
+                        width="100%" height="352" frameBorder="0" allowfullscreen=""
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"></iframe>
+                </div>
+
                 <div class="card">
                     <div class="favorites-header" id="favToggle">
                         <h2>Favorites</h2>
@@ -556,12 +561,12 @@
                     <div class="favorites-list" id="favList"></div>
                 </div>
 
-                <div class="card ad-section">
-                    <iframe style="border-radius:12px"
-                        src="https://open.spotify.com/embed/playlist/3CEHzVVOhGM60x9c2fwppj?utm_source=generator&theme=0"
-                        width="100%" height="352" frameBorder="0" allowfullscreen=""
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"></iframe>
+                <div class="card" style="font-size:13px;color:var(--muted);line-height:1.6;">
+                    <h2 style="color:var(--text);">How to Use</h2>
+                    <p>1. Press <strong>ROLL</strong> or <strong>Space</strong> to generate colors.</p>
+                    <p>2. Adjust sliders: <em>Calm↔Vivid</em> and <em>Dark↔Light</em>.</p>
+                    <p>3. Click the 🔒 icon to lock any color.</p>
+                    <p>4. Save your favorites and export as CSS, HTML, or PNG.</p>
                 </div>
             </div>
         </main>
@@ -612,7 +617,7 @@
 
         // ===== State =====
         let currentTheme = null;
-        let locks = { primary: false, accent: false };
+        let locks = { bg: false, surface: false, text: false, muted: false, primary: false, accent: false };
         let favorites = JSON.parse(localStorage.getItem('colorDiceFavs') || '[]');
 
         // ===== Theme Generation =====
@@ -629,16 +634,19 @@
             // Background
             let bgL = modeDark ? (6 + rand() * 6) : (92 + rand() * 5);
             let bgS = (10 + rand() * 10) * satMultiplier;
-            let bg = rgbToHex(...hslToRgb(hue, bgS, bgL));
+            let bg = locks.bg && currentTheme ? currentTheme.bg : rgbToHex(...hslToRgb(hue, bgS, bgL));
 
             // Surface
             let surfL = modeDark ? (bgL + 6 + rand() * 8) : (bgL - 6 - rand() * 8);
-            let surface = rgbToHex(...hslToRgb(hue, bgS + 8, clamp(surfL, 0, 100)));
+            let surface = locks.surface && currentTheme ? currentTheme.surface : rgbToHex(...hslToRgb(hue, bgS + 8, clamp(surfL, 0, 100)));
 
             // Text
-            let text = modeDark ? '#f4f4f6' : '#0b0b0f';
-            if (contrast(bg, text) < 7) text = modeDark ? '#ffffff' : '#000000';
-            let muted = modeDark ? '#b8b8c2' : '#4a4a55';
+            let textGen = modeDark ? '#f4f4f6' : '#0b0b0f';
+            if (contrast(bg, textGen) < 7) textGen = modeDark ? '#ffffff' : '#000000';
+            let text = locks.text && currentTheme ? currentTheme.text : textGen;
+
+            let mutedGen = modeDark ? '#b8b8c2' : '#4a4a55';
+            let muted = locks.muted && currentTheme ? currentTheme.muted : mutedGen;
 
             // Primary
             const pHue = (hue + (rand() < 0.5 ? 30 : 330) + Math.floor(rand() * 20)) % 360;
@@ -687,10 +695,10 @@
 
         function renderSwatches(t) {
             const colors = [
-                ['bg', t.bg, false],
-                ['surface', t.surface, false],
-                ['text', t.text, false],
-                ['muted', t.muted, false],
+                ['bg', t.bg, true],
+                ['surface', t.surface, true],
+                ['text', t.text, true],
+                ['muted', t.muted, true],
                 ['primary', t.primary, true],
                 ['accent', t.accent, true]
             ];
@@ -724,7 +732,7 @@
         function renderFavorites() {
             const list = document.getElementById('favList');
             if (favorites.length === 0) {
-                list.innerHTML = '<div class="no-favs">まだ保存されていません</div>';
+                list.innerHTML = '<div class="no-favs">No favorites yet</div>';
                 return;
             }
 
@@ -732,11 +740,14 @@
     <div class="fav-item" data-index="${i}">
       <div class="fav-colors">
         <span style="background:${fav.bg}"></span>
+        <span style="background:${fav.surface}"></span>
+        <span style="background:${fav.text}"></span>
+        <span style="background:${fav.muted}"></span>
         <span style="background:${fav.primary}"></span>
         <span style="background:${fav.accent}"></span>
       </div>
       <span class="fav-seed">seed: ${fav.seed}</span>
-      <button class="fav-delete" data-index="${i}" title="削除">
+      <button class="fav-delete" data-index="${i}" title="Delete">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
       </button>
     </div>
@@ -748,7 +759,7 @@
                     if (e.target.closest('.fav-delete')) return;
                     const fav = favorites[item.dataset.index];
                     applyTheme(fav);
-                    showToast('テーマを適用しました');
+                    showToast('Theme applied');
                 };
             });
 
@@ -759,7 +770,7 @@
                     favorites.splice(btn.dataset.index, 1);
                     localStorage.setItem('colorDiceFavs', JSON.stringify(favorites));
                     renderFavorites();
-                    showToast('削除しました');
+                    showToast('Deleted');
                 };
             });
         }
@@ -767,26 +778,26 @@
         function saveFavorite() {
             if (!currentTheme) return;
             if (favorites.length >= 20) {
-                showToast('最大20件まで保存できます');
+                showToast('Max 20 favorites');
                 return;
             }
             if (favorites.some(f => f.seed === currentTheme.seed)) {
-                showToast('すでに保存されています');
+                showToast('Already saved');
                 return;
             }
             favorites.unshift({ ...currentTheme });
             localStorage.setItem('colorDiceFavs', JSON.stringify(favorites));
             renderFavorites();
-            showToast('保存しました！');
+            showToast('Saved!');
         }
 
         // ===== Output Functions =====
         function copyCSS() {
             const css = document.getElementById('cssOut').value;
             navigator.clipboard.writeText(css).then(() => {
-                showToast('CSSをコピーしました');
+                showToast('CSS copied!');
             }).catch(() => {
-                showToast('コピーに失敗しました');
+                showToast('Copy failed');
             });
         }
 
@@ -805,7 +816,7 @@
       --muted: ${t.muted}; --primary: ${t.primary}; --accent: ${t.accent};
     }
     body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui; display: flex; align-items: center; justify-content: center; }
-    .card { background: var(--surface); padding: 24px; border-radius: 16px; text-align: center; }
+    .card { background: var(--surface); padding: 24px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.15); }
     .colors { display: flex; gap: 8px; margin: 16px 0; }
     .colors span { width: 40px; height: 40px; border-radius: 8px; }
     button { background: var(--primary); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; }
@@ -835,7 +846,7 @@
             a.download = 'color-dice-theme.html';
             a.click();
             URL.revokeObjectURL(url);
-            showToast('HTMLをダウンロードしました');
+            showToast('HTML downloaded!');
         }
 
         function downloadPNG() {
@@ -860,7 +871,7 @@
                 a.download = 'color-dice-palette.png';
                 a.click();
                 URL.revokeObjectURL(url);
-                showToast('PNGをダウンロードしました');
+                showToast('PNG downloaded!');
             });
         }
 
