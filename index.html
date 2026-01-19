@@ -507,14 +507,16 @@
     <div class="app">
         <header class="header">
             <div class="logo">🎲 Color Dice</div>
-            <span class="seed-badge" id="seed">seed: ---</span>
         </header>
 
         <main class="main">
             <!-- Left column -->
             <div class="left-col">
                 <div class="card">
-                    <h2>Color Palette</h2>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <h2 style="margin:0;">Color Palette</h2>
+                        <span class="seed-badge" id="seed">seed: ---</span>
+                    </div>
                     <div class="swatches" id="swatches"></div>
 
                     <div class="controls">
@@ -837,7 +839,7 @@
     <h1>My Theme</h1>
     <div class="colors">
       <span style="background:${t.bg}"></span>
-      <span style="background:${t.surface}"></span>
+      <span style="background:${t.surface};border:1px solid rgba(255,255,255,0.3);"></span>
       <span style="background:${t.primary}"></span>
       <span style="background:${t.accent}"></span>
     </div>
