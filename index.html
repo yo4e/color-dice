@@ -929,8 +929,9 @@
             const blob = new Blob([html], { type: 'text/html' });
             const file = new File([blob], 'color-dice-theme.html', { type: 'text/html' });
 
-            // Try Web Share API on mobile
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            // Only use Web Share API on mobile (touch devices)
+            const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ files: [file], title: 'Color Dice Theme' })
                     .then(() => showToast('Shared!'))
                     .catch(err => {
@@ -969,8 +970,9 @@
             canvas.toBlob(blob => {
                 const file = new File([blob], 'color-dice-palette.png', { type: 'image/png' });
 
-                // Try Web Share API on mobile
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // Only use Web Share API on mobile (touch devices)
+                const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
                     navigator.share({ files: [file], title: 'Color Dice Palette' })
                         .then(() => showToast('Shared!'))
                         .catch(err => {
