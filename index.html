@@ -221,6 +221,7 @@
             outline: 3px solid var(--ring);
             outline-offset: 2px;
         }
+
         .btn:focus-visible,
         .sw .lock-btn:focus-visible,
         .favorites-toggle:focus-visible,
@@ -926,13 +927,28 @@
 </html>`;
 
             const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'color-dice-theme.html';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('HTML downloaded!');
+            const file = new File([blob], 'color-dice-theme.html', { type: 'text/html' });
+
+            // Try Web Share API on mobile
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ files: [file], title: 'Color Dice Theme' })
+                    .then(() => showToast('Shared!'))
+                    .catch(err => {
+                        if (err.name !== 'AbortError') fallbackDownload();
+                    });
+            } else {
+                fallbackDownload();
+            }
+
+            function fallbackDownload() {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'color-dice-theme.html';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('HTML downloaded!');
+            }
         }
 
         function downloadPNG() {
@@ -951,13 +967,28 @@
             });
 
             canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'color-dice-palette.png';
-                a.click();
-                URL.revokeObjectURL(url);
-                showToast('PNG downloaded!');
+                const file = new File([blob], 'color-dice-palette.png', { type: 'image/png' });
+
+                // Try Web Share API on mobile
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: 'Color Dice Palette' })
+                        .then(() => showToast('Shared!'))
+                        .catch(err => {
+                            if (err.name !== 'AbortError') fallbackDownload(blob);
+                        });
+                } else {
+                    fallbackDownload(blob);
+                }
+
+                function fallbackDownload(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'color-dice-palette.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('PNG downloaded!');
+                }
             });
         }
 
