@@ -221,6 +221,13 @@
             outline: 3px solid var(--ring);
             outline-offset: 2px;
         }
+        .btn:focus-visible,
+        .sw .lock-btn:focus-visible,
+        .favorites-toggle:focus-visible,
+        .fav-delete:focus-visible {
+            outline: 3px solid var(--ring);
+            outline-offset: 2px;
+        }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), #9d7cff);
@@ -629,7 +636,29 @@
         // ===== State =====
         let currentTheme = null;
         let locks = { bg: false, surface: false, text: false, muted: false, primary: false, accent: false };
-        let favorites = JSON.parse(localStorage.getItem('colorDiceFavs') || '[]');
+        const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+        const safeHex = (val, fallback) => HEX_RE.test(val) ? val : fallback;
+        const safeTheme = (theme) => {
+            if (!theme || typeof theme !== 'object') return null;
+            const seed = Number.isFinite(theme.seed) ? theme.seed : null;
+            const bg = safeHex(theme.bg, null);
+            const surface = safeHex(theme.surface, null);
+            const text = safeHex(theme.text, null);
+            const muted = safeHex(theme.muted, null);
+            const primary = safeHex(theme.primary, null);
+            const accent = safeHex(theme.accent, null);
+            if ([bg, surface, text, muted, primary, accent].some(v => !v) || seed === null) return null;
+            return { bg, surface, text, muted, primary, accent, seed };
+        };
+
+        let favorites = (() => {
+            try {
+                const raw = JSON.parse(localStorage.getItem('colorDiceFavs') || '[]');
+                return Array.isArray(raw) ? raw.map(safeTheme).filter(Boolean) : [];
+            } catch {
+                return [];
+            }
+        })();
 
         // ===== Theme Generation =====
         function genTheme(seed, satMod = 50, lightMod = 25) {
@@ -717,73 +746,106 @@
             const lockIcon = `<svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5 5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z"/></svg>`;
             const unlockIcon = `<svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h9V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3H7a5 5 0 0 1 5-5 5 5 0 0 1 5 5v2h1z"/></svg>`;
 
-            document.getElementById('swatches').innerHTML = colors.map(([name, val, canLock]) => {
+            const swatches = document.getElementById('swatches');
+            swatches.innerHTML = '';
+            colors.forEach(([name, val, canLock]) => {
                 const textColor = contrast(val, '#ffffff') >= 4.5 ? '#fff' : '#000';
                 const isLocked = locks[name];
-                return `
-      <div class="sw" style="background:${val};color:${textColor}">
-        ${canLock ? `<button class="lock-btn ${isLocked ? 'locked' : ''}" data-color="${name}" title="${isLocked ? 'Unlock' : 'Lock'}">${isLocked ? lockIcon : unlockIcon}</button>` : ''}
-        <div class="sw-name">${name}</div>
-        <code>${val}</code>
-      </div>`;
-            }).join('');
+                const sw = document.createElement('div');
+                sw.className = 'sw';
+                sw.style.background = val;
+                sw.style.color = textColor;
 
-            // Lock button events
-            document.querySelectorAll('.lock-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const colorName = btn.dataset.color;
-                    locks[colorName] = !locks[colorName];
-                    renderSwatches(currentTheme);
-                };
+                if (canLock) {
+                    const lockBtn = document.createElement('button');
+                    lockBtn.className = `lock-btn ${isLocked ? 'locked' : ''}`;
+                    lockBtn.dataset.color = name;
+                    lockBtn.title = isLocked ? 'Unlock' : 'Lock';
+                    lockBtn.setAttribute('aria-label', `${isLocked ? 'Unlock' : 'Lock'} ${name} color`);
+                    lockBtn.setAttribute('aria-pressed', isLocked ? 'true' : 'false');
+                    lockBtn.innerHTML = isLocked ? lockIcon : unlockIcon;
+                    lockBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        const colorName = lockBtn.dataset.color;
+                        locks[colorName] = !locks[colorName];
+                        renderSwatches(currentTheme);
+                    };
+                    sw.appendChild(lockBtn);
+                }
+
+                const swName = document.createElement('div');
+                swName.className = 'sw-name';
+                swName.textContent = name;
+                sw.appendChild(swName);
+
+                const swCode = document.createElement('code');
+                swCode.textContent = val;
+                sw.appendChild(swCode);
+
+                swatches.appendChild(sw);
             });
+
+            // Lock events bound on creation.
         }
 
         // ===== Favorites =====
         function renderFavorites() {
             const list = document.getElementById('favList');
+            list.innerHTML = '';
             if (favorites.length === 0) {
-                list.innerHTML = '<div class="no-favs">No favorites yet</div>';
+                const empty = document.createElement('div');
+                empty.className = 'no-favs';
+                empty.textContent = 'No favorites yet';
+                list.appendChild(empty);
                 return;
             }
 
-            list.innerHTML = favorites.map((fav, i) => `
-    <div class="fav-item" data-index="${i}">
-      <div class="fav-colors">
-        <span style="background:${fav.bg}"></span>
-        <span style="background:${fav.surface}"></span>
-        <span style="background:${fav.text}"></span>
-        <span style="background:${fav.muted}"></span>
-        <span style="background:${fav.primary}"></span>
-        <span style="background:${fav.accent}"></span>
-      </div>
-      <span class="fav-seed">seed: ${fav.seed}</span>
-      <button class="fav-delete" data-index="${i}" title="Delete">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
-      </button>
-    </div>
-  `).join('');
+            favorites.forEach((fav, i) => {
+                const item = document.createElement('div');
+                item.className = 'fav-item';
+                item.dataset.index = i;
 
-            // Apply favorite
-            list.querySelectorAll('.fav-item').forEach(item => {
+                const colors = document.createElement('div');
+                colors.className = 'fav-colors';
+                [fav.bg, fav.surface, fav.text, fav.muted, fav.primary, fav.accent].forEach(color => {
+                    const sw = document.createElement('span');
+                    sw.style.background = color;
+                    colors.appendChild(sw);
+                });
+                item.appendChild(colors);
+
+                const seed = document.createElement('span');
+                seed.className = 'fav-seed';
+                seed.textContent = `seed: ${fav.seed}`;
+                item.appendChild(seed);
+
+                const del = document.createElement('button');
+                del.className = 'fav-delete';
+                del.dataset.index = i;
+                del.title = 'Delete';
+                del.setAttribute('aria-label', 'Delete favorite');
+                del.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>';
+                item.appendChild(del);
+
                 item.onclick = (e) => {
                     if (e.target.closest('.fav-delete')) return;
-                    const fav = favorites[item.dataset.index];
-                    applyTheme(fav);
+                    const selected = favorites[item.dataset.index];
+                    applyTheme(selected);
                     showToast('Theme applied');
                 };
-            });
 
-            // Delete favorite
-            list.querySelectorAll('.fav-delete').forEach(btn => {
-                btn.onclick = (e) => {
+                del.onclick = (e) => {
                     e.stopPropagation();
-                    favorites.splice(btn.dataset.index, 1);
+                    favorites.splice(del.dataset.index, 1);
                     localStorage.setItem('colorDiceFavs', JSON.stringify(favorites));
                     renderFavorites();
                     showToast('Deleted');
                 };
+
+                list.appendChild(item);
             });
+
+            // Events bound on creation.
         }
 
         function saveFavorite() {
@@ -805,11 +867,24 @@
         // ===== Output Functions =====
         function copyCSS() {
             const css = document.getElementById('cssOut').value;
-            navigator.clipboard.writeText(css).then(() => {
-                showToast('CSS copied!');
-            }).catch(() => {
-                showToast('Copy failed');
-            });
+            const fallbackCopy = () => {
+                const area = document.getElementById('cssOut');
+                area.focus();
+                area.select();
+                try {
+                    const ok = document.execCommand('copy');
+                    showToast(ok ? 'CSS copied!' : 'Copy failed');
+                } catch {
+                    showToast('Copy failed');
+                }
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(css).then(() => {
+                    showToast('CSS copied!');
+                }).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
         }
 
         function downloadHTML() {
@@ -915,18 +990,24 @@
         const favToggle = document.getElementById('favToggle');
         const favList = document.getElementById('favList');
         const toggleBtn = favToggle.querySelector('.favorites-toggle');
+        toggleBtn.setAttribute('aria-label', 'Toggle favorites');
+        toggleBtn.setAttribute('aria-expanded', favList.classList.contains('hidden') ? 'false' : 'true');
         favToggle.onclick = () => {
             favList.classList.toggle('hidden');
             toggleBtn.classList.toggle('open');
+            toggleBtn.setAttribute('aria-expanded', favList.classList.contains('hidden') ? 'false' : 'true');
         };
 
         // How to Use toggle
         const howToggle = document.getElementById('howToggle');
         const howContent = document.getElementById('howContent');
         const howBtn = howToggle.querySelector('.favorites-toggle');
+        howBtn.setAttribute('aria-label', 'Toggle how to use');
+        howBtn.setAttribute('aria-expanded', howContent.classList.contains('hidden') ? 'false' : 'true');
         howToggle.onclick = () => {
             howContent.classList.toggle('hidden');
             howBtn.classList.toggle('open');
+            howBtn.setAttribute('aria-expanded', howContent.classList.contains('hidden') ? 'false' : 'true');
         };
 
         // Keyboard shortcut
@@ -945,7 +1026,8 @@
         const lastTheme = localStorage.getItem('colorDiceLastTheme');
         if (lastTheme) {
             try {
-                applyTheme(JSON.parse(lastTheme));
+                const safe = safeTheme(JSON.parse(lastTheme));
+                if (safe) applyTheme(safe);
             } catch (e) { }
         }
 
