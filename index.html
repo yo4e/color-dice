@@ -160,7 +160,8 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 20px;
+            margin-top: 16px;
         }
 
         .slider-group {
@@ -526,31 +527,31 @@
                     </div>
 
                     <div class="roll-section">
-                        <button class="btn btn-primary" id="roll">🎲 ROLL (Space)</button>
-                        <button class="btn btn-accent" id="save">💾 SAVE</button>
+                        <button class="btn btn-primary" id="roll">ROLL (Space)</button>
+                        <button class="btn btn-accent" id="save">SAVE</button>
                     </div>
                 </div>
 
                 <div class="card output-section">
                     <h2>Export</h2>
                     <div class="output-btns">
-                        <button class="btn btn-ghost btn-small" id="copyCSS">📋 CSS</button>
-                        <button class="btn btn-ghost btn-small" id="downloadHTML">📄 HTML</button>
-                        <button class="btn btn-ghost btn-small" id="downloadPNG">🖼️ PNG</button>
+                        <button class="btn btn-ghost btn-small" id="copyCSS">CSS</button>
+                        <button class="btn btn-ghost btn-small" id="downloadHTML">HTML</button>
+                        <button class="btn btn-ghost btn-small" id="downloadPNG">PNG</button>
                     </div>
                     <textarea id="cssOut" readonly spellcheck="false"></textarea>
                 </div>
             </div>
 
             <!-- Right column -->
-            <div class="right-col">
-                <div class="card ad-section">
-                    <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">PR</div>
+            <div class="right-col" style="display:flex;flex-direction:column;gap:16px;">
+                <div class="card ad-section" style="position:relative;">
                     <iframe style="border-radius:12px"
                         src="https://open.spotify.com/embed/playlist/3CEHzVVOhGM60x9c2fwppj?utm_source=generator&theme=0"
                         width="100%" height="352" frameBorder="0" allowfullscreen=""
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"></iframe>
+                    <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:8px;">PR</div>
                 </div>
 
                 <div class="card">
@@ -572,7 +573,8 @@
         </main>
 
         <footer>
-            <p>© 2026 <a href="https://yo4e.com" target="_blank" rel="noopener">月野テンプレクス</a> / KazeX Records</p>
+            <p>© 2026 <a href="https://open.spotify.com/intl-ja/artist/2ywWnX3fORCEVpUZYQ6dIA?si=mUz9UEVNSJGqASJuGgaaHQ"
+                    target="_blank" rel="noopener">月野テンプレクス</a> / KazeX Records</p>
         </footer>
     </div>
 
