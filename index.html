@@ -338,7 +338,8 @@
             overflow-y: auto;
         }
 
-        .favorites-list.hidden {
+        .favorites-list.hidden,
+        .how-content.hidden {
             display: none;
         }
 
@@ -544,7 +545,7 @@
             </div>
 
             <!-- Right column -->
-            <div class="right-col" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="right-col" style="display:flex;flex-direction:column;gap:16px;align-self:start;">
                 <div class="card ad-section" style="position:relative;">
                     <iframe style="border-radius:12px"
                         src="https://open.spotify.com/embed/playlist/3CEHzVVOhGM60x9c2fwppj?utm_source=generator&theme=0"
@@ -563,11 +564,16 @@
                 </div>
 
                 <div class="card" style="font-size:13px;color:var(--muted);line-height:1.6;">
-                    <h2 style="color:var(--text);">How to Use</h2>
-                    <p>1. Press <strong>ROLL</strong> or <strong>Space</strong> to generate colors.</p>
-                    <p>2. Adjust sliders: <em>Calm↔Vivid</em> and <em>Dark↔Light</em>.</p>
-                    <p>3. Click the 🔒 icon to lock any color.</p>
-                    <p>4. Save your favorites and export as CSS, HTML, or PNG.</p>
+                    <div class="favorites-header" id="howToggle">
+                        <h2 style="color:var(--text);margin:0;">How to Use</h2>
+                        <button class="favorites-toggle">▼</button>
+                    </div>
+                    <div class="how-content hidden" id="howContent" style="margin-top:12px;">
+                        <p>1. Press <strong>ROLL</strong> or <strong>Space</strong> to generate colors.</p>
+                        <p>2. Adjust sliders: <em>Calm↔Vivid</em> and <em>Dark↔Light</em>.</p>
+                        <p>3. Click the lock icon to lock any color.</p>
+                        <p>4. Save your favorites and export as CSS, HTML, or PNG.</p>
+                    </div>
                 </div>
             </div>
         </main>
@@ -909,6 +915,15 @@
         favToggle.onclick = () => {
             favList.classList.toggle('hidden');
             toggleBtn.classList.toggle('open');
+        };
+
+        // How to Use toggle
+        const howToggle = document.getElementById('howToggle');
+        const howContent = document.getElementById('howContent');
+        const howBtn = howToggle.querySelector('.favorites-toggle');
+        howToggle.onclick = () => {
+            howContent.classList.toggle('hidden');
+            howBtn.classList.toggle('open');
         };
 
         // Keyboard shortcut
