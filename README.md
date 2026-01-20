@@ -24,6 +24,12 @@ A free random color palette generator. Roll the dice and find your perfect theme
 
 Copy the CSS and paste it to AI image generators like Nano Banana — ask them to "generate an image using this color palette" for perfectly coordinated visuals!
 
+### Examples
+
+| Dark & Mysterious | Vivid & Pop |
+|:---:|:---:|
+| ![Dark theme example](example-dark.png) | ![Vivid theme example](example-vivid.jpg) |
+
 ---
 
 ## Tech Stack
