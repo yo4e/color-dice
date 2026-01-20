@@ -65,6 +65,7 @@
             font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
+            min-height: 100vh;
             min-height: 100dvh;
         }
 
@@ -542,6 +543,18 @@
         .toast.show {
             opacity: 1;
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -569,14 +582,16 @@
 
                     <div class="controls">
                         <div class="slider-group">
-                            <div class="slider-label"><span>Calm</span><span>Vivid</span></div>
-                            <input type="range" id="saturation" min="0" max="100" value="50">
-                        </div>
-                        <div class="slider-group">
-                            <div class="slider-label"><span>Dark</span><span>Light</span></div>
-                            <input type="range" id="lightness" min="0" max="100" value="25">
-                        </div>
+                        <div class="slider-label"><span>Calm</span><span>Vivid</span></div>
+                        <label class="sr-only" for="saturation">Saturation</label>
+                        <input type="range" id="saturation" min="0" max="100" value="50" aria-label="Saturation">
                     </div>
+                    <div class="slider-group">
+                        <div class="slider-label"><span>Dark</span><span>Light</span></div>
+                        <label class="sr-only" for="lightness">Lightness</label>
+                        <input type="range" id="lightness" min="0" max="100" value="25" aria-label="Lightness">
+                    </div>
+                </div>
 
                     <div class="roll-section">
                         <button class="btn btn-primary" id="roll">ROLL</button>
@@ -598,7 +613,7 @@
             <!-- Right column -->
             <div class="right-col" style="display:flex;flex-direction:column;gap:16px;align-self:start;">
                 <div class="card ad-section" style="position:relative;">
-                    <iframe style="border-radius:12px"
+                    <iframe title="Spotify playlist" style="border-radius:12px"
                         src="https://open.spotify.com/embed/playlist/3CEHzVVOhGM60x9c2fwppj?utm_source=generator&theme=0"
                         width="100%" height="352" frameBorder="0" allowfullscreen=""
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -934,8 +949,9 @@
         function downloadHTML() {
             if (!currentTheme) return;
             const t = currentTheme;
+            const lang = document.documentElement.lang || 'en';
             const html = `<!DOCTYPE html>
-<html lang="ja">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -970,16 +986,21 @@
 </html>`;
 
             const blob = new Blob([html], { type: 'text/html' });
-            const file = new File([blob], 'color-dice-theme.html', { type: 'text/html' });
 
             // Only use Web Share API on mobile (touch devices)
             const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file], title: 'Color Dice Theme' })
-                    .then(() => showToast('Shared!'))
-                    .catch(err => {
-                        if (err.name !== 'AbortError') fallbackDownload();
-                    });
+            const canShareFiles = typeof File !== 'undefined' && navigator.canShare;
+            if (isMobile && canShareFiles) {
+                const file = new File([blob], 'color-dice-theme.html', { type: 'text/html' });
+                if (navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: 'Color Dice Theme' })
+                        .then(() => showToast('Shared!'))
+                        .catch(err => {
+                            if (err.name !== 'AbortError') fallbackDownload();
+                        });
+                } else {
+                    fallbackDownload();
+                }
             } else {
                 fallbackDownload();
             }
@@ -1010,31 +1031,51 @@
                 ctx.fillRect((i % 3) * size, Math.floor(i / 3) * size, size, size);
             });
 
-            canvas.toBlob(blob => {
-                const file = new File([blob], 'color-dice-palette.png', { type: 'image/png' });
-
+            const saveBlob = (blob) => {
+                const canShareFiles = typeof File !== 'undefined' && navigator.canShare;
                 // Only use Web Share API on mobile (touch devices)
                 const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file], title: 'Color Dice Palette' })
-                        .then(() => showToast('Shared!'))
-                        .catch(err => {
-                            if (err.name !== 'AbortError') fallbackDownload(blob);
-                        });
-                } else {
-                    fallbackDownload(blob);
+                if (isMobile && canShareFiles) {
+                    const file = new File([blob], 'color-dice-palette.png', { type: 'image/png' });
+                    if (navigator.canShare({ files: [file] })) {
+                        navigator.share({ files: [file], title: 'Color Dice Palette' })
+                            .then(() => showToast('Shared!'))
+                            .catch(err => {
+                                if (err.name !== 'AbortError') fallbackDownload(blob);
+                            });
+                        return;
+                    }
                 }
+                fallbackDownload(blob);
+            };
 
-                function fallbackDownload(blob) {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'color-dice-palette.png';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('PNG downloaded!');
+            if (canvas.toBlob) {
+                canvas.toBlob(blob => {
+                    if (blob) saveBlob(blob);
+                    else showToast('PNG failed');
+                });
+            } else {
+                // Fallback for older browsers
+                const dataUrl = canvas.toDataURL('image/png');
+                const parts = dataUrl.split(',');
+                const byteString = atob(parts[1]);
+                const mime = parts[0].match(/:(.*?);/)[1];
+                const buffer = new Uint8Array(byteString.length);
+                for (let i = 0; i < byteString.length; i++) {
+                    buffer[i] = byteString.charCodeAt(i);
                 }
-            });
+                saveBlob(new Blob([buffer], { type: mime }));
+            }
+
+            function fallbackDownload(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'color-dice-palette.png';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('PNG downloaded!');
+            }
         }
 
         // ===== Toast =====
