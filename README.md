@@ -20,6 +20,12 @@ A free random color palette generator. Roll the dice and find your perfect theme
 
 ---
 
+## 💡 Pro Tip
+
+Copy the CSS and paste it to AI image generators like Nano Banana — ask them to "generate an image using this color palette" for perfectly coordinated visuals!
+
+---
+
 ## Tech Stack
 
 - **Frontend**: HTML / CSS / JavaScript (single file, no build step)
