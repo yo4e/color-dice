@@ -218,6 +218,7 @@
 
         input[type=range] {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             height: 6px;
             border-radius: 3px;
@@ -450,10 +451,6 @@
             padding: 16px;
         }
 
-        /* Ad slots */
-        .ad-section {
-            /* no extra margin - gap is handled by right-col flex */
-        }
 
         .ad-slot {
             border-radius: 12px;
@@ -582,16 +579,16 @@
 
                     <div class="controls">
                         <div class="slider-group">
-                        <div class="slider-label"><span>Calm</span><span>Vivid</span></div>
-                        <label class="sr-only" for="saturation">Saturation</label>
-                        <input type="range" id="saturation" min="0" max="100" value="50" aria-label="Saturation">
+                            <div class="slider-label"><span>Calm</span><span>Vivid</span></div>
+                            <label class="sr-only" for="saturation">Saturation</label>
+                            <input type="range" id="saturation" min="0" max="100" value="50" aria-label="Saturation">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-label"><span>Dark</span><span>Light</span></div>
+                            <label class="sr-only" for="lightness">Lightness</label>
+                            <input type="range" id="lightness" min="0" max="100" value="25" aria-label="Lightness">
+                        </div>
                     </div>
-                    <div class="slider-group">
-                        <div class="slider-label"><span>Dark</span><span>Light</span></div>
-                        <label class="sr-only" for="lightness">Lightness</label>
-                        <input type="range" id="lightness" min="0" max="100" value="25" aria-label="Lightness">
-                    </div>
-                </div>
 
                     <div class="roll-section">
                         <button class="btn btn-primary" id="roll">ROLL</button>
