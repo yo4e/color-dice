@@ -1,40 +1,59 @@
 # 🎲 Color Dice
 
-ランダムカラーパレット生成ツール。サイコロを振る感覚で配色を探せます。
+A free random color palette generator. Roll the dice and find your perfect theme!
 
-**👉 https://colordice.yo4e.com**
+**👉 [colordice.yo4e.com](https://colordice.yo4e.com)**
 
----
-
-## 機能
-
-- **ROLL / Space** でランダムパレット生成
-- **彩度スライダ** (Calm ⇄ Vivid)
-- **明度スライダ** (Dark ⇄ Light)
-- **カラーロック** - 気に入った色を固定して再生成
-- **Favorites** - 最大20件保存 (localStorage)
-- **エクスポート** - CSS / HTML / PNG
-- **スマホ共有** - Web Share API対応
+![Color Dice Screenshot](og-image.png)
 
 ---
 
-## 技術スタック
+## Features
 
-- HTML / CSS / JavaScript (単一ファイル)
-- Cloudflare Pages でホスティング
-- Web Share API (モバイル共有)
+- **One-click generation** — Press ROLL or Space to generate palettes
+- **Saturation slider** — Adjust from Calm to Vivid
+- **Lightness slider** — Adjust from Dark to Light
+- **Color locking** — Lock any color and regenerate the rest
+- **Favorites** — Save up to 20 palettes (localStorage)
+- **Export options** — CSS variables, HTML preview, or PNG image
+- **Mobile sharing** — Web Share API for iOS/Android
 
 ---
 
-## 開発
+## Tech Stack
+
+- **Frontend**: HTML / CSS / JavaScript (single file, no build step)
+- **Hosting**: Cloudflare Pages
+- **Analytics**: Cloudflare Web Analytics
+- **Sharing**: Web Share API (mobile)
+
+---
+
+## Getting Started
 
 ```bash
-# ローカルで確認
+# Clone the repo
+git clone https://github.com/yo4e/color-dice.git
+
+# Open locally
 open index.html
 ```
 
+No dependencies. No build process. Just open and go.
+
 ---
 
-## ライセンス
+## Browser Support
+
+- Chrome 90+
+- Firefox 90+
+- Safari 13+
+- Edge 90+
+- iOS Safari 13+
+- Android Chrome 90+
+
+---
+
+## License
 
 © 2026 [月野テンプレクス](https://open.spotify.com/intl-ja/artist/2ywWnX3fORCEVpUZYQ6dIA) / KazeX Records
